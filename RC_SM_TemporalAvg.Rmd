@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+author: "RC_SM_TemporalAvg"
+date: "9/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(openair)
+```
+
+## RC Soil Moisture Data (July 2020 compile)
+
+```{r}
+
+# Rock Creek
+RC_SM_July2020 <- readr::read_csv("RC_SM_July2020/compiled_RC_July2020_plusJJdata.csv", 
+                         col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+```
+
+## RC Soil Moisture Data (Aug 2020 compile)
+
+```{r}
+
+RC_SM_Aug2020 <- readr::read_csv("RC_SM_Aug2020/compiled_RC_Aug2020.csv", 
+                                 col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+```
+
+## RCSM2
+
+```{r}
+
+RCSM2 <- RC_SM_July2020 %>% 
+  dplyr::select(Date, "VWC_20cm_RCSM2", "VWC_30cm_RCSM2", "VWC_50cm_RCSM2", "VWC_60cm_RCSM2", ends_with("JJ")) %>% 
+  dplyr::filter(Date >= as.POSIXct("2019-07-20 00:00:00", tz = "UTC"))
+
+```
+
+## Daily
+
+```{r}
+
+## Data
+
+# Daily max
+RCSM2_daily_max <- RCSM2 %>% 
+  rename(date = Date) %>% 
+  openair::timeAverage(avg.time = "day", data.thresh = 50, statistic = "max", interval = "30 min")
+
+# Daily avg
+RCSM2_daily_avg <- RCSM2 %>% 
+  rename(date = Date) %>% 
+  openair::timeAverage(avg.time = "day", data.thresh = 50, statistic = "mean", interval = "30 min")
+
+# Daily avg, avg across all sensors in area
+RCSM2_daily_avg_across_sensors <- RCSM2_daily_avg %>% 
+  rowwise(date) %>% 
+  dplyr::mutate(VWC = mean(c_across(VWC_18in_RCSM2_JJ:VWC_18in_2_RCSM2_JJ), na.rm = TRUE))
+
+
+## Plots
+RCSM2_daily_max %>% 
+  tidyr::pivot_longer(cols = matches("VWC"), names_to = "Sensor", values_to = "VWC") %>% 
+  mutate(Sensor = as.factor(Sensor)) %>%
+  # dplyr::filter(Date >= as.POSIXct("2019-7-20 00:00:00", tz = "UTC") & Date < as.POSIXct("2020-7-9 00:00:00", tz = "UTC")) %>%
+  ggplot(aes(x = date, y = VWC)) +
+  geom_line(aes(color = Sensor), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+RCSM2_daily_avg %>% 
+  tidyr::pivot_longer(cols = matches("VWC"), names_to = "Sensor", values_to = "VWC") %>% 
+  mutate(Sensor = as.factor(Sensor)) %>%
+  # dplyr::filter(Date >= as.POSIXct("2019-7-20 00:00:00", tz = "UTC") & Date < as.POSIXct("2020-7-9 00:00:00", tz = "UTC")) %>%
+  ggplot(aes(x = date, y = VWC)) +
+  geom_line(aes(color = Sensor), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+RCSM2_daily_avg_across_sensors %>% 
+  ggplot(aes(x = date, y = VWC)) +
+  geom_line() +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+  
+  
+
+```
+
+
+
+## Weekly
+
