@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Intro
 
-This demo is intended to accompany the `.R` script as a README for compiling soil moisture raw data files collected at the Chester, CA meadows- Marian, Control, Rock Creek, and Childs using HOBO Onset and Campbell Sci. data loggers. The purpose of this document is to explain the functions and demonstrate how to use them. This will ease potential troubleshooting and open the door for code to be adapted and improved in the future if desired.  
+This demo is intended as a README for compiling soil moisture raw data files collected at the Chester, CA meadows- Marian, Control, Rock Creek, and Childs using HOBO Onset and Campbell Sci. data loggers. The purpose of this document is to explain the functions and demonstrate how to use them. This will ease potential troubleshooting and open the door for code to be adapted and improved in the future over the course of this research if desired.  
 
 ### Libraries (required R packages)
 
@@ -49,7 +49,7 @@ The below functions are broken into two categories: helper and major. There is o
 * `by` a character vector of variables to join by. If NULL, the default, *_join() defined by the `join` argument will do a natural join, using all variables with common names across the two tables. A message lists the variables so that you can check they're right (to suppress the message, simply explicitly list the variables that you want to join).
 * `suffix` If there are non-joined duplicate variables in x and y, these suffixes will be added to the output to disambiguate them. Should be a character vector of length 2
 * `join` type of mutating join supported by `dplyr`
-* ... other parameters passed onto methods, for instance, `na_matches` to control how NA values are matched. This is mostly included for robustness
+* ... other parameters passed onto methods, for instance, `na_matches` to control how NA values are matched. This is mostly included for robustness.
 
 **Value**
 
@@ -90,15 +90,15 @@ coalesce_join <- function(x, y,
 
 ```
 
-#### Helper- `read_soilsapflow`
+#### Helper- `read_campbell_dat`
 
 **Description**
 
-`read_soilsapflow` reads in the .dat files produced by the Campbell Scientific CR1000 and CR300 logger programs currently collecting SoilVUE10 soil moisture data in Rock Creek Meadow.
+`read_campbell_dat` reads in the `.dat` files produced by the Campbell Scientific CR1000 and CR300 logger programs currently collecting SoilVUE10 soil moisture data in Rock Creek Meadow. The function adds an additional column/variable to the data file called `ID`. **Pleasure ensure the first line of the `.dat` file contains the site ID for the logger/soil moisture instrument (i.e. RCSM2).** You can edit the `.dat` file in Notepad or something else. 
 
 **Arguments:**
 
-* `path` path to the .dat soil and sapflow file produced by the CR1000. Must be quoted and end with .dat
+* `path` path to the `.dat` file. Must be quoted and end with `.dat`.
 
 **Value**
 
@@ -106,16 +106,27 @@ A data frame `tbl_df`
 
 ```{r}
 
-read_soilsapflow <- function(path) {
+read_campbell_dat <- function(path) {
   
+  # get column names from .dat file
   column_names <- readr::read_lines(path, skip = 1, n_max = 1) %>% 
-  stringr::str_remove_all(pattern = '\"') %>% 
-  stringr::str_split(pattern = ",") %>% 
-  purrr::pluck(1)
+    stringr::str_remove_all(pattern = '\"') %>% 
+    stringr::str_split(pattern = ",") %>% 
+    purrr::pluck(1)
+  
+  # gather metadata from first line of .dat file, collapse into single string, extract site name (ID)
+  meta_data <- readr::read_lines(path, n_max = 1) %>% 
+    stringr::str_remove_all(pattern = '\"') %>% 
+    stringr::str_split(pattern = ",") %>% 
+    purrr::pluck(1) %>% 
+    paste(collapse = " ") %>% 
+    str_extract("RCSM[:digit:]|RC[:digit:]SM")
   
   data <- readr::read_csv(path, col_names = column_names, skip = 4, na = "NAN", 
                        col_types = cols(.default = col_double(), 
                                         TIMESTAMP = col_datetime(format = "")))
+  data <- data %>%
+    dplyr::mutate(ID = meta_data)
   
   return(data)
   
@@ -127,11 +138,11 @@ read_soilsapflow <- function(path) {
 
 **Description**
 
-`readSoilvue_CR1000` manipulates the data frame `tbl_df` produced by `read_soilsapflow` to include only timestamp and VWC variables, navigating electrical conductivity, permitivity, temperature, and sap flow data currently produced by the CR1000 soil and sap flow program
+`readSoilvue_CR1000` manipulates the data frame `tbl_df` produced by `read_campbell_dat` to include only timestamp and VWC variables, navigating electrical conductivity, permitivity, temperature, and sap flow data currently produced by the CR1000 soil and sap flow program.
 
 **Arguments:**
 
-* `data` A data frame `tbl_df` produced by `read_soilsapflow`
+* `data` A data frame `tbl_df` produced by `read_campbell_dat`
 
 **Value**
 
@@ -159,7 +170,7 @@ readSoilvueVWC_CR1000 <- function(data) {
 
 **Description**
 
-`readSoilvue_CR300` reads in the .dat file currently produced by the CR300 soilVUE program to produce a data frame `tbl_df` including only timestamp and VWC variables, navigating electrical conductivity, permitivity, and temperature data
+`readSoilvue_CR300` reads in the .dat file currently produced by the CR300 soilVUE program to produce a data frame `tbl_df` including only timestamp and VWC variables, navigating electrical conductivity, permitivity, and temperature data.
 
 **Arguments:**
 
@@ -173,21 +184,21 @@ A data frame `tbl_df`
 
 readSoilvueVWC_CR300 <- function(path) {
   
-  data <- read_soilsapflow(path = path) %>% 
+  data <- read_campbell_dat(path = path) %>% 
     # Drop record no., electrical conductivity, permittivity, temperature
-    dplyr::select(TIMESTAMP, dplyr::starts_with("VWC")) %>%
+    dplyr::select(TIMESTAMP, dplyr::starts_with("VWC"), ID) %>%
     # Date info
     dplyr::mutate(TIMESTAMP = lubridate::ymd_hms(TIMESTAMP)) %>% 
-    dplyr::rename(Date = TIMESTAMP) %>% 
-    # add site name variable (ID)
-    dplyr::mutate(ID = "RCSM3")
+    dplyr::rename(Date = TIMESTAMP)
   
   names <- colnames(data) %>% 
+    # if logger program was recording an avg, instead of sample
     stringr::str_remove_all(pattern = "_Avg")
   
   colnames(data) <- names
   
   return(data)
+  
 }
 
 ```
@@ -196,7 +207,7 @@ readSoilvueVWC_CR300 <- function(path) {
 
 **Description**
 
-`clean_SM_data` reads in .csv data file produced by HOBO Onset logger for soil moisture (VWC) or .dat file produced by CR300 or CR1000 for SoilVUE10 (VWC). Produces a data frame `tbl_df` in long format with variables corresponding to date/time, VWC at site respective sensor depths, and site ID 
+`clean_SM_data` reads in .csv data file produced by HOBO Onset logger for soil moisture (VWC) or .dat file produced by CR300 or CR1000 for SoilVUE10 (VWC). Produces a data frame `tbl_df` in long format with variables corresponding to date/time, VWC at site respective sensor depths, and site ID.
 
 **Arguments:**
 
@@ -305,7 +316,7 @@ clean_SM_data <- function(path, site){
       
       if(stringr::str_detect(stringr::str_to_lower(path), "sap")){
         
-        ordered_data <- read_soilsapflow(path = path) %>% 
+        ordered_data <- read_campbell_dat(path = path) %>% 
         readSoilvueVWC_CR1000()
         
     } else {
@@ -519,6 +530,3 @@ compiled_Marian_July2020  %>%
   dplyr::select(Date, VWC_30cm_MMSM5, dplyr::everything())
 
 ```
-
-
-
