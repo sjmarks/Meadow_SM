@@ -381,6 +381,29 @@ compiled_RC_Nov2020 <- process_SM_data(path = "C:/Users/Simon/Desktop/Meadow_SM/
 
 ```
 
+John's data- added to compilation on 12/2/2020
+
+```{r}
+
+table2_Nov2020 <- read_campbell_dat("RC_SM_Nov2020/CR800Series_Table2_Nov2020.dat") %>% 
+  select(Date = TIMESTAMP, VWC_18in_RCSM2_JJ = VWC)
+
+table3_Nov2020 <- read_campbell_dat("RC_SM_Nov2020/CR800Series_Table3_Nov2020.dat") %>% 
+  select(Date = TIMESTAMP, VWC_18in_2_RCSM2_JJ = VWC_2)
+
+John_RCSM2_data <- dplyr::left_join(table2_Nov2020, table3_Nov2020, by = "Date") %>% 
+  mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+# Nov 2020 is existing/most recent compilation
+existing_RC_compilation <- readr::read_csv("RC_SM_Nov2020/compiled_RC_Nov2020.csv", col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+updated_RC_compilation <- dplyr::left_join(existing_RC_compilation, John_RCSM2_data, by = "Date") %>% 
+  mutate(Date = as.character(Date)) %>% 
+  readr::write_csv("RC_SM_Nov2020/compiled_RC_Nov2020_plusJJdata.csv")
+
+```
+
 #### Prev. Compile Marian (Aug 2020)
 
 ```{r}
