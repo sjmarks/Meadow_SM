@@ -549,7 +549,7 @@ compiled_Marian_July2020  %>%
 
 **Value**
 
-A data.frame
+A data.frame with Date in class `POSIXct` and WY in class `numeric`. WY indicates the water year that the aggregation belongs to.
 
 **Other notes**
 
