@@ -22,6 +22,7 @@ These functions are built using functions from the well established `tidyverse`,
 library(plyr)
 library(tidyverse)
 library(lubridate)
+library(openair)
 
 ```
 
@@ -29,7 +30,7 @@ If you have not installed these packages to your machine you need to do so in or
 
 ```{r eval = FALSE}
 
-install.packages(c("tidyverse", "plyr", "lubridate"))
+install.packages(c("tidyverse", "plyr", "lubridate", "openair"))
 
 ```
 
@@ -528,5 +529,79 @@ compiled_Marian_July2020  %>%
   dplyr::filter(duplicated(Date) | duplicated(Date, fromLast = TRUE)) %>% 
   dplyr::arrange(Date) %>% 
   dplyr::select(Date, VWC_30cm_MMSM5, dplyr::everything())
+
+```
+
+## Temporal Aggregation Function
+
+**Description**
+
+`temp_agg_meadow_dat` takes a data.frame of a meadow data compilation (e.g. soil moisture, well, climate, sap flow data) and performs a temporal aggregation. 
+
+**Arguments**
+
+* `data` dataframe with data to aggregate, **must** contain a variable called "Date" of class `POSIXct` 
+* `start_day_of_week` an integer specifying the start day of the week for the temporal aggregation. 1 corresponds to Sunday and so on.
+* `interval` the function tries to determine the interval of the original time series (e.g. hourly) by calculating the most common interval between time steps. The interval is needed for calculations where the `data.thresh > 0` as is defaulted. For example, a time step of 30 minutes would be specified as `interval = "30 min"`
+* `avg.time` This defines the time period to average to. Can be “sec”, “min”, “hour”, “day”, “DSTday”, “week”, “month”, “quarter” or “year”. For much increased flexibility a number can precede these options followed by a space. For example, a 7 day aggregation would be `avg.time = "7 day"`. In addition, avg.time can equal “season”, in which case 3-month seasonal values are calculated with spring defined as March, April, May and so on.
+* `data.thresh` The data capture threshold to use (%). A value of zero means that all available data will be used in a particular period regardless if of the number of values available. Conversely, a value of 100 will mean that all data will need to be present for the average to be calculated, else it is recorded as NA. 
+* `statistic` The statistic to apply when aggregating the data; default is the mean. Can be one of “mean”, “max”, “min”, “median”, “sd”. "sd" is standard deviation.
+
+**Value**
+
+A data.frame
+
+**Other notes**
+
+Make sure there is a variable in the supplied data.frame called "Date"
+
+```{r}
+
+temp_agg_meadow_dat <- function(data, start_day_of_week, interval = "30 min", avg.time = "7 day", data.thresh = 50, statistic = "mean"){
+  
+  # data <- readr::read_csv(path, col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  #   dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+  
+  # path_write_out <- paste0(stringr::str_replace(path, "[^/]+$", replacement = ""), file_name_write)
+  
+  # Determine the dates corresponding to the first and last of chosen weekday (start date for averaging) present in data
+  start_date <- data %>% 
+    dplyr::mutate(is.chosen_wday = ifelse(lubridate::wday(Date) == start_day_of_week, T, F)) %>%
+    dplyr::filter(is.chosen_wday == TRUE) %>% 
+    dplyr::summarise(min(Date)) %>% 
+    dplyr::pull()
+  
+  end_date <- data %>% 
+    dplyr::mutate(is.chosen_wday = ifelse(lubridate::wday(Date) == start_day_of_week - 1, T, F)) %>%
+    dplyr::filter(is.chosen_wday == TRUE) %>% 
+    dplyr::summarise(max(Date)) %>% 
+    dplyr::pull()
+  
+  data <- data %>% 
+    # rename Date variable to "date" to play nicely w/ openair::timeAverage
+    dplyr::rename(date = Date) %>% 
+    dplyr::filter(date >= start_date & date <= end_date)
+  
+  aggregation <- openair::timeAverage(data, avg.time = avg.time, 
+                                      data.thresh = data.thresh, statistic = statistic,
+                                      start.date = start_date, end.date = end_date, interval = interval) %>% 
+    # determine water year membership of the time avg- this might need to be tweaked
+    dplyr::mutate(WY = dplyr::case_when(
+      date %within% lubridate::interval(ymd("2017-10-01", tz = "UTC"), 
+                                        ymd("2018-09-30", tz = "UTC")) ~ 2018,
+      date %within% lubridate::interval(ymd("2018-10-01", tz = "UTC"), 
+                                        ymd("2019-09-30", tz = "UTC")) ~ 2019,
+      date %within% lubridate::interval(ymd("2019-10-01", tz = "UTC"), 
+                                        ymd("2020-09-30", tz = "UTC")) ~ 2020,
+      date %within% lubridate::interval(ymd("2020-10-01", tz = "UTC"), 
+                                        ymd("2021-09-30", tz = "UTC")) ~ 2021,
+    )) 
+  # %>% 
+  #   mutate(date = as.character(date)) %>% 
+  #   rename(Date = date) %>%  
+  #   # Write to .csv
+  #   readr::write_csv(path = path_write_out)
+  
+}
 
 ```
