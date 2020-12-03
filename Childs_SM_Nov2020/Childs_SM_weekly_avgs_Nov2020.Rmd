@@ -1,0 +1,117 @@
+---
+title: "Childs_SM_weekly_avgs_Nov2020"
+author: "Simon Marks"
+date: "12/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(openair)
+```
+
+## Latest Childs Compilation Data (Nov 2020)
+
+```{r}
+
+# Childs
+
+Childs_SM_Nov2020 <- readr::read_csv("Childs_SM_Nov2020/compiled_Childs_Nov2020.csv", col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+```
+
+## Filtering Out Bad RCM SM Data
+
+* VWC values less than or equal to 0 or greater than 1
+
+```{r}
+
+Childs_SM_good_data_Nov2020 <- Childs_SM_Nov2020 %>%
+  dplyr::mutate(dplyr::across(starts_with("VWC"), ~ case_when(
+    . <= 0 | . > 1 ~ NA_real_,
+    TRUE ~ .
+  )))
+```
+
+## Temporal Averaging Function
+
+```{r}
+
+temp_agg_meadow_dat <- function(data, start_day_of_week, interval = "30 min", avg.time = "7 day", data.thresh = 50, statistic = "mean"){
+  
+  # data <- readr::read_csv(path, col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  #   dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+  
+  # path_write_out <- paste0(stringr::str_replace(path, "[^/]+$", replacement = ""), file_name_write)
+  
+  # Determine the dates corresponding to the first and last of chosen weekday (start date for averaging) present in data
+  start_date <- data %>% 
+    dplyr::mutate(is.chosen_wday = ifelse(lubridate::wday(Date) == start_day_of_week, T, F)) %>%
+    dplyr::filter(is.chosen_wday == TRUE) %>% 
+    dplyr::summarise(min(Date)) %>% 
+    dplyr::pull()
+  
+  end_date <- data %>% 
+    dplyr::mutate(is.chosen_wday = ifelse(lubridate::wday(Date) == start_day_of_week - 1, T, F)) %>%
+    dplyr::filter(is.chosen_wday == TRUE) %>% 
+    dplyr::summarise(max(Date)) %>% 
+    dplyr::pull()
+  
+  data <- data %>% 
+    # rename Date variable to "date" to play nicely w/ openair::timeAverage
+    dplyr::rename(date = Date) %>% 
+    dplyr::filter(date >= start_date & date <= end_date)
+  
+  aggregation <- openair::timeAverage(data, avg.time = avg.time, 
+                                      data.thresh = data.thresh, statistic = statistic,
+                                      start.date = start_date, end.date = end_date, interval = interval) %>% 
+    # determine water year membership of the time avg- this might need to be tweaked
+    dplyr::mutate(WY = dplyr::case_when(
+      date %within% lubridate::interval(ymd("2017-10-01", tz = "UTC"), 
+                                        ymd("2018-09-30", tz = "UTC")) ~ 2018,
+      date %within% lubridate::interval(ymd("2018-10-01", tz = "UTC"), 
+                                        ymd("2019-09-30", tz = "UTC")) ~ 2019,
+      date %within% lubridate::interval(ymd("2019-10-01", tz = "UTC"), 
+                                        ymd("2020-09-30", tz = "UTC")) ~ 2020,
+      date %within% lubridate::interval(ymd("2020-10-01", tz = "UTC"), 
+                                        ymd("2021-09-30", tz = "UTC")) ~ 2021,
+    )) 
+  # %>% 
+  #   mutate(date = as.character(date)) %>% 
+  #   rename(Date = date) %>%  
+  #   # Write to .csv
+  #   readr::write_csv(path = path_write_out)
+  
+}
+
+```
+
+## Weekly Averages for Childs SM data
+
+* First instruments at Chilsd were well installed on Monday 07-08-2019, so `start_day_of_week = 2`
+* Maintains all other default arguments from above functions
+* T2 logger was originally launched to log at 1 hour interval, T3 was 30 min interval at first start. Despite this mixture in the time series, `interval = "30 min` should still be set as such here.
+
+**First week is week of 2019-07-08, last week is week of 2020-11-16**
+
+```{r}
+
+weekly_Childs_SM_toNov2020 <- temp_agg_meadow_dat(Childs_SM_good_data_Nov2020, interval = "30 min", start_day_of_week = 2, data.thresh = 50)
+
+# write out to CSV
+
+weekly_Childs_SM_toNov2020 %>% 
+    mutate(date = as.character(date)) %>%
+    rename(Date = date) %>%
+    readr::write_csv(path = "Childs_SM_Nov2020/weekly_SM_Childs_Nov2020.csv")
+
+
+```
+
