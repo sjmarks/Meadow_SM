@@ -98,7 +98,7 @@ temp_agg_meadow_dat <- function(data, start_day_of_week, interval = "30 min", av
 * First instruments at Control were well installed on September 13 of 2013 (Friday), so `start_day_of_week = 6`
 * Maintains all other default arguments from above functions
 
-**First week is week of 2019-04-26, last week is week of 2020-11-13*
+**First week is week of 2019-07-12, last week is week of 2020-11-13*
 
 ```{r}
 
