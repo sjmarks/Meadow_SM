@@ -1,0 +1,161 @@
+---
+title: "Data Exploration- RC"
+author: "Simon Marks"
+date: "12/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## RC Soil Moisture Data (Nov. 2020 compile)
+
+```{r}
+
+RC_SM_Nov2020 <- readr::read_csv("RC_SM_Nov2020/compiled_RC_Nov2020_plusJJdata.csv", 
+                                 col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+# filter out bad data, same technique for what was compiled into weekly averages
+RC_SM_good_data_Nov2020 <- RC_SM_Nov2020 %>%
+  dplyr::mutate(dplyr::across(starts_with("VWC"), ~ case_when(
+    . <= 0 | . > 1 ~ NA_real_,
+    TRUE ~ .
+  )))
+
+```
+
+### RCSM2
+
+Notes: 
+
+* 100 cm is no good, must be a air gap (conferred with Campbell Sci)
+* 75 cm is consistently very low VWC, probably bad soil contact (conferred with Campbell Sci)
+* 5 cm depth sometimes registers VWC of 0, that is why it appears data is missing between July and Sept. for this depth
+* data seems to be best for (20, 30, 50, 60 cm depths)- good soil contact with sensors down profile
+
+```{r}
+
+# data for plotting
+RCSM2 <- RC_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("RCSM2")) %>% 
+  # RCSM2 was installed 2019-09-03 15:30:00
+  dplyr::filter(Date >= as.POSIXct("2019-09-03 15:30:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("RCSM2"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for RCSM2
+RCSM2_timeseries <- RCSM2 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(!`Sensor Depth` %in% c("VWC_100cm_RCSM2", "VWC_75cm_RCSM2")) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-09-03 15:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-22 15:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 months")
+
+RCSM2_timeseries
+
+```
+
+### RCSM2- John's Data
+
+```{r}
+
+# data for plotting
+RCSM2_JJ <- RC_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("RCSM2_JJ")) %>%
+  # Dr. J installed sensors 2019-07-19 16:30:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-19 16:30:00", tz = "UTC")) %>% 
+  tidyr::pivot_longer(cols = ends_with("RCSM2_JJ"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for RCSM2 JJ
+RCSM2_JJ_timeseries <- RCSM2_JJ %>% 
+  dplyr::filter(Date >= as.POSIXct("2019-07-19 16:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-21 13:30:00", tz = "UTC")) %>%
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+RCSM2_JJ_timeseries
+
+```
+
+### RCSM3
+
+Notes:
+
+* 75 cm is no good, due to collapsing of the hole (conferred with Campbell Sci)
+* 5 cm sometimes registers 0 VWC, which is why it is graphed as missing between Aug. and Nov.
+
+```{r}
+
+# data for plotting
+RCSM3 <- RC_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("RCSM3")) %>% 
+  # RCSM3 was installed 2019-12-09 14:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-12-09 14:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("RCSM3"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for RCSM3
+RCSM3_timeseries <- RCSM3 %>% 
+  dplyr::filter(`Sensor Depth` != "VWC_75cm_RCSM3") %>% 
+  dplyr::filter(Date > as.POSIXct("2019-12-09 14:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-22 14:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) + 
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+RCSM3_timeseries
+
+```
+
+## RCSM1
+
+Notes: 
+
+* 1 meter depth sensor has been defective, should replace next trip 
+
+```{r}
+
+# data for plotting
+RC1SM <- RC_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("RC1SM")) %>%
+  # RC1SM was installed 1 2019-07-09 17:30:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-09 17:30:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("RC1SM"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for RCSM3
+RC1SM_timeseries <- RC1SM %>% 
+  dplyr::filter(Date > as.POSIXct("2019-07-09 17:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-21 14:30:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) + 
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+
+RC1SM_timeseries
+```
+
+
+# RCSM5
+
+```{r}
+
+# data for plotting
+RCSM5 <- RC_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("RCSM5")) %>%
+  # RCSM5 was installed 2019-07-09 19:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-09 19:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("RCSM5"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for RCSM5
+RCSM5_timeseries <- RCSM5 %>% 
+  dplyr::filter(Date >= as.POSIXct("2019-07-09 19:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-21 13:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) + 
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 month")
+
+RCSM5_timeseries
+
+```
