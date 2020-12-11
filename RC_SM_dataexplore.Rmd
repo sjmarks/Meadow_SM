@@ -126,7 +126,7 @@ RC1SM <- RC_SM_good_data_Nov2020 %>%
   dplyr::filter(Date >= as.POSIXct("2019-07-09 17:30:00", tz = "UTC")) %>%
   tidyr::pivot_longer(cols = ends_with("RC1SM"), names_to = "Sensor Depth", values_to = "VWC")
 
-# time series ggplot for RCSM3
+# time series ggplot for RC1SM
 RC1SM_timeseries <- RC1SM %>% 
   dplyr::filter(Date > as.POSIXct("2019-07-09 17:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-21 14:30:00", tz = "UTC")) %>% 
   ggplot(aes(x = Date, y = VWC)) + 
