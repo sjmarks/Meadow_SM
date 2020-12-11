@@ -1,0 +1,158 @@
+---
+title: "Data Exploration- Marian"
+author: "Simon Marks"
+date: "12/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## Marian Soil Moisture Data (Nov. 2020 compile)
+
+```{r}
+
+Marian_SM_Nov2020 <- readr::read_csv("Marian_SM_Nov2020/compiled_Marian_Nov2020.csv", 
+                                 col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+# filter out bad data, same technique for what was compiled into weekly averages
+Marian_SM_good_data_Nov2020 <- Marian_SM_Nov2020 %>%
+  dplyr::mutate(dplyr::across(starts_with("VWC"), ~ case_when(
+    . <= 0 | . > 1 ~ NA_real_,
+    TRUE ~ .
+  )))
+
+```
+
+### MM1SM
+
+Notes: 
+
+* 1 meter depth sensor needs replacing, has been stuck at value of 0.7184
+
+```{r}
+
+# data for plotting
+MM1SM <- Marian_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("MM1SM")) %>% 
+  # oldest data in this comp is 2019-04-25 11:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-04-25 11:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("MM1SM"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for MM1SM
+MM1SM_timeseries <- MM1SM %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-04-25 11:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 08:30:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+MM1SM_timeseries
+
+```
+
+### MMSM2
+
+```{r}
+
+# data for plotting
+MMSM2 <- Marian_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("MMSM2")) %>% 
+  # oldest data in this comp is 2019-12-10 09:30:00
+  dplyr::filter(Date >= as.POSIXct("2019-12-10 09:30:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("MMSM2"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for MMSM2
+MMSM2_timeseries <- MMSM2 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-12-10 09:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 08:30:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 months")
+
+MMSM2_timeseries
+
+```
+
+### MMSM3
+
+Notes:
+
+* 30 cm depth sensor shows strange values in July and Aug. 2019
+
+```{r}
+
+# data for plotting
+MMSM3 <- Marian_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("MMSM3")) %>% 
+  # oldest data in this comp is 2019-07-22 12:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-22 12:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("MMSM3"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for MMSM3
+MMSM3_timeseries <- MMSM3 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-07-22 12:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 09:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "3 months")
+
+MMSM3_timeseries
+
+```
+
+### MMSM4
+
+```{r}
+
+# data for plotting
+MMSM4 <- Marian_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("MMSM4")) %>% 
+  # oldest data in this comp is 2019-04-25 11:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-04-25 11:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("MMSM4"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for MMSM4
+MMSM4_timeseries <- MMSM4 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-04-25 11:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 09:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+MMSM4_timeseries
+
+```
+
+### MMSM5
+
+Notes:
+
+* 30 cm sensor went down between August and Nov. trips, installed new sensor during Nov. 2020 trip
+
+```{r}
+
+# data for plotting
+MMSM5 <- Marian_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("MMSM5")) %>% 
+  # oldest data in this comp is 2019-04-25 11:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-04-25 11:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("MMSM5"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for MMSM5
+MMSM5_timeseries <- MMSM5 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-04-25 11:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 08:30:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+MMSM5_timeseries
+
+```
