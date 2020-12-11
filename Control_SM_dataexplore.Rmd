@@ -1,0 +1,136 @@
+---
+title: "Data Exploration- Control"
+author: "Simon Marks"
+date: "12/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## Control Soil Moisture Data (Nov. 2020 compile)
+
+```{r}
+
+Control_SM_Nov2020 <- readr::read_csv("Control_SM_Nov2020/compiled_Control_Nov2020.csv", 
+                                 col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = as.POSIXct(Date, tz = "UTC"))
+
+# filter out bad data, same technique for what was compiled into weekly averages
+Control_SM_good_data_Nov2020 <- Control_SM_Nov2020 %>%
+  dplyr::mutate(dplyr::across(starts_with("VWC"), ~ case_when(
+    . <= 0 | . > 1 ~ NA_real_,
+    TRUE ~ .
+  )))
+
+```
+
+### CM1SM
+
+Notes:
+
+* 30 cm depth sensor went bad sometime in Oct. 2020, will need to replace next trip?
+
+```{r}
+
+# data for plotting
+CM1SM <- Control_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("CM1SM")) %>% 
+  # oldest data in this comp is 2019-07-10 18:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-10 18:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("CM1SM"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for CM1SM
+CM1SM_timeseries <- CM1SM %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-07-10 18:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 10:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+CM1SM_timeseries
+
+```
+
+### CM2SM
+
+Notes:
+
+* Pretty variable data for 30 cm and 10 cm depths at times
+
+```{r}
+
+# data for plotting
+CM2SM <- Control_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("CM2SM")) %>% 
+  # oldest data in this comp is 2019-12-08 16:00:00
+  dplyr::filter(Date >= as.POSIXct("2019-12-08 16:00:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("CM2SM"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for CM2SM
+CM2SM_timeseries <- CM2SM %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-12-08 16:00:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 10:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+CM2SM_timeseries
+
+```
+
+### CMSM3
+
+Notes:
+
+* This was the logger that was not launched again during July 2020 field visit, logger was relaunched at Nov. 2020 trip
+
+
+```{r}
+
+# data for plotting
+CMSM3 <- Control_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("CMSM3")) %>% 
+  # oldest data in this comp is 2019-07-20 11:30:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-20 11:30:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("CMSM3"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for CMSM3
+CMSM3_timeseries <- CMSM3 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-07-20 11:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 10:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+CMSM3_timeseries
+
+```
+
+### CMSM4
+
+```{r}
+
+# data for plotting
+CMSM4 <- Control_SM_good_data_Nov2020 %>% 
+  dplyr::select(Date, ends_with("CMSM4")) %>% 
+  # oldest data in this comp is 2019-07-10 10:30:00
+  dplyr::filter(Date >= as.POSIXct("2019-07-10 10:30:00", tz = "UTC")) %>%
+  tidyr::pivot_longer(cols = ends_with("CMSM4"), names_to = "Sensor Depth", values_to = "VWC")
+
+# time series ggplot for CMSM4
+CMSM4_timeseries <- CMSM4 %>%
+  mutate(`Sensor Depth` = as.factor(`Sensor Depth`)) %>%
+  dplyr::filter(Date >= as.POSIXct("2019-07-10 10:30:00", tz = "UTC") & Date <= as.POSIXct("2020-11-23 11:00:00", tz = "UTC")) %>% 
+  ggplot(aes(x = Date, y = VWC)) +
+  geom_line(aes(color = `Sensor Depth`), size = 1) +
+  scale_x_datetime(date_labels = "%Y %b %d", date_breaks = "4 months")
+
+CMSM4_timeseries
+
+```
