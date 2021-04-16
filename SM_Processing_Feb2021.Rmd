@@ -1,0 +1,34 @@
+---
+title: "SM_Processing_Feb2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+source("SM_Processing_Functions.R")
+
+```
+
+#### Rock Creek Soil Moisture Data
+
+#### Prev. Rock Creek Compile (Nov 2020)
+
+```{r}
+
+RC_compile_Nov2020 <- readr::read_csv(file = "RC_SM_Nov2020/compiled_RC_Nov2020.csv", 
+                                       col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = lubridate::ymd_hms(Date))
+
+```
+
+#### New Compile for RC (Feb 2021)
+
+```{r}
+
+compiled_RC_Feb2021 <- process_SM_data(path = "RC_SM_Feb2021", 
+                                        site = "RC", prev_compile = RC_compile_Nov2020, written_file_name = "compiled_RC_Feb2021.csv")
+```
