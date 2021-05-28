@@ -41,35 +41,40 @@ MM_compile_Nov2020 <- readr::read_csv(file = "Marian_SM_Nov2020/compiled_Marian_
   dplyr::mutate(Date = lubridate::ymd_hms(Date))
 ```
 
-#### New Compile for Marian
+#### New Compile for Marian (May 2021)
 
 ```{r}
 compiled_Marian_May2021 <- process_SM_data(path = "Marian_SM_May2021", 
                                         site = "marian", prev_compile = MM_compile_Nov2020, written_file_name = "compiled_Marian_May2021.csv")
 ```
 
-#### Control Meadow Soil Moisture Data
+
+#### Prev. Compile Control (Nov 2020)
 
 ```{r}
-Control_compile_Aug2020 <- readr::read_csv(file = "Control_SM_Aug2020/compiled_Control_Aug2020.csv", 
+Control_compile_Nov2020 <- readr::read_csv(file = "Control_SM_Nov2020/compiled_Control_Nov2020.csv", 
                                        col_types = cols(Date = col_character(), .default = col_double())) %>% 
   dplyr::mutate(Date = lubridate::ymd_hms(Date))
 ```
 
+#### New Compile for Control (May 2021)
+
 ```{r}
-compiled_Control_Nov2020 <- process_SM_data(path = "C:/Users/Simon/Desktop/Meadow_SM/Control_SM_Nov2020", 
-                                        site = "control", prev_compile = Control_compile_Aug2020, written_file_name = "compiled_Control_Nov2020.csv")
+compiled_Control_May2021 <- process_SM_data(path = "Control_SM_May2021", 
+                                        site = "control", prev_compile = Control_compile_Nov2020, written_file_name = "compiled_Control_May2021.csv")
 ```
 
-#### Childs Meadow Soil Moisture Data
+#### Prev. Compile Child's (Nov 2020)
 
 ```{r}
-Childs_compile_Aug2020 <- readr::read_csv(file = "Childs_SM_Aug2020/compiled_Childs_Aug2020.csv", 
+Childs_compile_Nov2020 <- readr::read_csv(file = "Childs_SM_Nov2020/compiled_Childs_Nov2020.csv", 
                                        col_types = cols(Date = col_character(), .default = col_double())) %>% 
   dplyr::mutate(Date = lubridate::ymd_hms(Date))
 ```
 
+#### New Compile for Child's (May 2021)
+
 ```{r}
-compiled_Childs_Nov2020 <- process_SM_data(path = "C:/Users/Simon/Desktop/Meadow_SM/Childs_SM_Nov2020", 
-                                        site = "Childs", prev_compile = Childs_compile_Aug2020, written_file_name = "compiled_Childs_Nov2020.csv")
+compiled_Childs_May2021 <- process_SM_data(path = "Childs_SM_May2021", 
+                                        site = "Childs", prev_compile = Childs_compile_Nov2020, written_file_name = "compiled_Childs_May2021.csv")
 ```
