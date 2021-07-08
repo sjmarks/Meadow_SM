@@ -83,7 +83,7 @@ read_campbell_dat <- function(path) {
     purrr::pluck(1) %>% 
     paste(collapse = " ") %>% 
     # because these instruments are sites RCSM2, RCSM2b, or RCSM3 
-    str_extract("RCSM2b_1|RCSM2b_2|RCSM2|RC[:digit:]SM")
+    str_extract("RCSM2b_1|RCSM2b_2|RCSM2|RCSM3")
   
   data <- readr::read_csv(path, col_names = column_names, skip = 4, na = "NAN", 
                           col_types = cols(.default = col_double(), 
@@ -274,6 +274,38 @@ clean_SM_data <- function(path, site){
         
         # Create clean/standardized data with sensor depths in proper order (i.e.columns)
         ordered_data <- thirty_cm %>%
+          dplyr::mutate(ID = ID)
+        
+      }
+      
+      # 30 cm and 70 cm configuration (RCSM3_temp following the May 2021 trip)
+      if(TRUE %in% stringr::str_detect(data_colnames, pattern = "0.7m|70cm") & data_cols == 3){
+        
+        thirty_cm <- select(data, date, matches("30cm|0.3m"))
+        colnames(thirty_cm) <- c("Date", "VWC_30cm")
+        
+        seventy_cm <- select(data, date, matches("70cm|0.7m"))
+        colnames(seventy_cm) <- c("Date", "VWC_70cm")
+        
+        # Create clean/standardized data with sensor depths in proper order (i.e.columns)
+        ordered_data <- plyr::join_all(list(thirty_cm , seventy_cm), by = 'Date', 
+                                       type = 'inner') %>%
+          dplyr::mutate(ID = ID)
+        
+      }
+      
+      # 30 cm and 60 cm configuration (new sap flow site following the May 2021 trip)
+      if(TRUE %in% stringr::str_detect(data_colnames, pattern = "0.6m|60cm") & data_cols == 3){
+        
+        thirty_cm <- select(data, date, matches("30cm|0.3m"))
+        colnames(thirty_cm) <- c("Date", "VWC_30cm")
+        
+        sixty_cm <- select(data, date, matches("60cm|0.6m"))
+        colnames(sixty_cm) <- c("Date", "VWC_60cm")
+        
+        # Create clean/standardized data with sensor depths in proper order (i.e.columns)
+        ordered_data <- plyr::join_all(list(thirty_cm , sixty_cm), by = 'Date', 
+                                       type = 'inner') %>%
           dplyr::mutate(ID = ID)
         
       }
