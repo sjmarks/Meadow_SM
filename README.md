@@ -14,6 +14,10 @@ The **functions** contained in this repo:
 
 All functions are contained in the file `SM_Processing_Functions.R`. This document describes each function's purpose and usage in greater detail. The SM data processing procedure is performed in the `.Rmd` files with file names indicating the month and year SM data were collected in the field from research meadows. Raw data files are contained in sub-folders to this repo with nomenclature indicative of where and when files were collected in the field. Weekly averaging is also performed in the sub-folders; however, this weekly averaging process is only as recent as the Nov 2020 sub-folders.
 
-**NOTE: Most recent compilation was done for data files collected in May 2021- `SM_Processing_May2021.Rmd` . . . Previous compilations in this repo (July, Aug 2020, Nov 2020, Feb 2021) do not feature the most up to date functions in their respective `.Rmd` files. Functions needed modification needed to accomodate the addition of a few new loggers at RCM. Please reference `SM_Processing.Rmd` and/or `SM_Processing_May2021.Rmd` for the next compilation process.**
+**NOTE: Most recent compilation was done for data files collected in July 2021- `SM_Processing_July2021.Rmd` . . . Previous compilations in this repo (July, Aug 2020, Nov 2020, Feb 2021) did not feature the most up to date functions in their respective `.Rmd` files. Functions needed modification needed to accomodate the addition of a few new loggers at RCM. Please reference `SM_Processing.Rmd` and/or `SM_Processing_July2021.Rmd` for the next compilation process.**
 
 Timeseries graphing of SM data from the meadows can be found in `.Rmd` files with `dataexplore` in their file name.
+
+# **TO DO:**
+
+1. RCM and CHILDS weekly SM averaging (leave this up to Joe)
