@@ -1,5 +1,5 @@
-﻿"Plot Title: MM2SM"
-"#","Date Time, GMT-07:00","Water Content, m³/m³ (LGR S/N: 20645949, SEN S/N: 20683999, LBL: 10 cm)","Water Content, m³/m³ (LGR S/N: 20645949, SEN S/N: 20684001, LBL: 30 cm)","Water Content, m³/m³ (LGR S/N: 20645949, SEN S/N: 20684008, LBL: 75)"
+﻿"Plot Title: MMSM2"
+"#","Date Time, GMT-07:00","Water Content, m³/m³ (LGR S/N: 20645949, SEN S/N: 20683999, LBL: MMSM2 10 cm)","Water Content, m³/m³ (LGR S/N: 20645949, SEN S/N: 20684001, LBL: MMSM2 30 cm)","Water Content, m³/m³ (LGR S/N: 20645949, SEN S/N: 20684008, LBL: MMSM2 75 cm)"
 1,09/09/21 04:30:01 PM,0.0850,0.2029,0.2550
 2,09/09/21 05:00:01 PM,0.0850,0.2035,0.2550
 3,09/09/21 05:30:01 PM,0.0850,0.2035,0.2550

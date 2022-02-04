@@ -13,15 +13,13 @@ source("SM_Processing_Functions.R")
 
 ```
 
-############# RCM compile for July 2021 completed by Simon on 7/8/2021 because I need this data for my thesis, Childs, Control, Marian still need compilation #########################
-
 #### Rock Creek Soil Moisture Data
 
 #### Prev. Rock Creek Compile (September 2021)
 
 ```{r}
 
-RC_compile_Sept2021 <- readr::read_csv(file = "RC_SM_Sept2021/compiled_RC_Sept2021.csv", 
+RC_compile_Sept2021 <- readr::read_csv(file = "RC_SM_Sept2021/compiled_ver2_RC_Sept2021.csv", 
                                        col_types = cols(Date = col_character(), .default = col_double())) %>% 
   dplyr::mutate(Date = lubridate::ymd_hms(Date))
 
@@ -56,8 +54,8 @@ MM_compile_Sept2021 <- readr::read_csv(file = "Marian_SM_Sept2021/compiled_Maria
 #### New Compile for Marian (December 2021)
 
 ```{r}
-compiled_Marian_Dec2021 <- process_SM_data(path = "Marian_SM_Dec2021", 
-                                        site = "marian", prev_compile = MM_compile_Dec2021, written_file_name = "compiled_Marian_Dec2021.csv")
+Marian_compile_Dec2021 <- process_SM_data(path = "Marian_SM_Dec2021", 
+                                        site = "marian", prev_compile = MM_compile_Sept2021, written_file_name = "Marian_compile_Dec2021.csv")
 ```
 
 

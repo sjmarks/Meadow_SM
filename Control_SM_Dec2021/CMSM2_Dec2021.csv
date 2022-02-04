@@ -1,5 +1,5 @@
-﻿"Plot Title: CMSM2"
-"#","Date Time, GMT-07:00","Water Content, m³/m³ (LGR S/N: 21088752, SEN S/N: 20684002)","Water Content, m³/m³ (LGR S/N: 21088752, SEN S/N: 20684005)","Water Content, m³/m³ (LGR S/N: 21088752, SEN S/N: 20684009)"
+﻿"Plot Title: CM2SM"
+"#","Date Time, GMT-07:00","Water Content, m³/m³ (LGR S/N: 21088752, SEN S/N: 20684002, 30CM)","Water Content, m³/m³ (LGR S/N: 21088752, SEN S/N: 20684005, 10 CM)","Water Content, m³/m³ (LGR S/N: 21088752, SEN S/N: 20684009, 1M)"
 1,09/09/21 09:00:01 AM,0.2020,0.0107,0.1652
 2,09/09/21 09:30:01 AM,0.2020,0.0107,0.1652
 3,09/09/21 10:00:01 AM,0.2020,0.0112,0.1652
