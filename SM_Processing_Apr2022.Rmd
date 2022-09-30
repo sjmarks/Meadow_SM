@@ -1,0 +1,90 @@
+---
+title: "SM_Processing_Apr2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+source("SM_Processing_Functions.R")
+
+```
+
+#### Rock Creek Soil Moisture Data
+
+#### Prev. Rock Creek Compile (December 2021)
+
+```{r}
+
+RC_compile_Dec2021 <- readr::read_csv(file = "RC_SM_Dec2021/compiled_ver2_RC_Dec2021.csv", 
+                                       col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = lubridate::ymd_hms(Date))
+
+```
+
+#### New Compile for RC (April 2022)
+
+```{r}
+
+compiled_RC_Apr2022 <- process_SM_data(path = "RC_SM_Apr2022", 
+                                        site = "RC", prev_compile = RC_compile_Dec2021, written_file_name = "compiled_RC_Apr2022.csv")
+```
+#### Data Cleaning Extra Step (April 2022)
+
+```{r}
+
+RC_compile_ver2_Apr2021 <- readr::read_csv(file = "RC_SM_Apr2022/compiled_RC_Apr2022.csv", 
+                                       col_types = cols(Date = col_character(), .default = col_double()))%>%
+      dplyr::distinct()%>%
+
+readr::write_csv(., path = paste0("RC_SM_Apr2022", "/", written_file_name = "compiled_ver2_RC_Apr2022.csv"))
+```
+
+#### Prev. Compile Marian (December 2021)
+
+```{r}
+MM_compile_Dec2021 <- readr::read_csv(file = "Marian_SM_Dec2021/compiled_Marian_Dec2021.csv", 
+                                       col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = lubridate::ymd_hms(Date))
+```
+
+#### New Compile for Marian (April 2022)
+
+```{r}
+Marian_compile_Apr2022 <- process_SM_data(path = "Marian_SM_Apr2022", 
+                                        site = "marian", prev_compile = MM_compile_Dec2021, written_file_name = "Marian_compile_Apr2022.csv")
+```
+
+
+#### Prev. Compile Control (December 2021)
+
+```{r}
+Control_compile_Dec2021 <- readr::read_csv(file = "Control_SM_Dec2021/compiled_Control_Dec2021.csv", 
+                                       col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = lubridate::ymd_hms(Date))
+```
+
+#### New Compile for Control (April 2022)
+
+```{r}
+compiled_Control_Apr2022 <- process_SM_data(path = "Control_SM_Apr2022", 
+                                        site = "control", prev_compile = Control_compile_Dec2021, written_file_name = "compiled_Control_Apr2022.csv")
+```
+
+#### Prev. Compile Child's (May 2021)
+
+```{r}
+Childs_compile_May2021 <- readr::read_csv(file = "Childs_SM_May2021/compiled_Childs_May2021.csv", 
+                                       col_types = cols(Date = col_character(), .default = col_double())) %>% 
+  dplyr::mutate(Date = lubridate::ymd_hms(Date))
+```
+
+#### New Compile for Child's (July 2021)
+
+```{r}
+compiled_Childs_July2021 <- process_SM_data(path = "Childs_SM_July2021", 
+                                        site = "Childs", prev_compile = Childs_compile_May2021, written_file_name = "compiled_Childs_July2021.csv")
+```
